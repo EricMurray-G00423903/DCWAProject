@@ -7,27 +7,19 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3004;
 
+// Middleware
 app.use(express.json());
 
-// MySQL Test Route
-app.get('/mysql-test', async (req, res) => {
-    try {
-        const [rows] = await mysql.query('SHOW TABLES');
-        res.json(rows);
-    } catch (err) {
-        res.status(500).send('MySQL connection failed');
-    }
-});
-
-// MongoDB Test Route
-app.get('/mongo-test', async (req, res) => {
-    try {
-        const db = await connectMongo();
-        const lecturers = await db.collection('lecturers').find().toArray();
-        res.json(lecturers);
-    } catch (err) {
-        res.status(500).send('MongoDB connection failed');
-    }
+// Home Page Route
+app.get('/', (req, res) => {
+    res.send(`
+        <h1>G00423903</h1>
+        <ul>
+            <li><a href="/students">Students Page</a></li>
+            <li><a href="/grades">Grades Page</a></li>
+            <li><a href="/lecturers">Lecturers Page</a></li>
+        </ul>
+    `);
 });
 
 // Start the Server
