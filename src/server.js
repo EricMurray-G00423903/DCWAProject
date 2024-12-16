@@ -1,14 +1,24 @@
 const express = require('express');
 const mysql = require('./db/mysql');
 const connectMongo = require('./db/mongo');
+// Import custom routes files
+const studentsRoutes = require('./routes/students');
+const gradesRoutes = require('./routes/grades'); 
+const lecturersRoutes = require('./routes/lecturers');
 
-require('dotenv').config();
+require('dotenv').config(); // Load environment variables
 
 const app = express();
 const PORT = process.env.PORT || 3004;
 
 // Middleware
 app.use(express.json());
+
+// Routes
+app.use('/students', studentsRoutes);
+//app.use('/lecturers', lecturersRoutes);
+//app.use('/grades', gradesRoutes);
+
 
 // Home Page Route
 app.get('/', (req, res) => {
