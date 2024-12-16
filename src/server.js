@@ -13,6 +13,7 @@ const PORT = process.env.PORT || 3004;
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));    // Middlewar for parsing Form Data
 
 // Routes
 app.use('/students', studentsRoutes);
