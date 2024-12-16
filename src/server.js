@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));    // Middlewar for parsing For
 
 // Routes
 app.use('/students', studentsRoutes);
-//app.use('/lecturers', lecturersRoutes);
+app.use('/lecturers', lecturersRoutes);
 app.use('/grades', gradesRoutes);
 
 
