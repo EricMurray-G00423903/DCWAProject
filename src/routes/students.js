@@ -279,7 +279,7 @@ router.post('/add', async (req, res) => {
     const { sid, name, age } = req.body;
 
     // Input validation
-    const sidRegex = /^G\d{3}$/; // Starts with G and followed by exactly 3 digits
+    const sidRegex = /^G\d{3}$/; // Starts with G and followed by exactly 3 digits regex
     const errors = [];
 
     if (!sid || !sidRegex.test(sid)) {
@@ -337,8 +337,5 @@ router.post('/add', async (req, res) => {
         res.status(500).send('Failed to add student.');
     }
 });
-
-
-
 
 module.exports = router;

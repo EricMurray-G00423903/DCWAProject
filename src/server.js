@@ -1,6 +1,4 @@
 const express = require('express');
-const mysql = require('./db/mysql');
-const connectMongo = require('./db/mongo');
 // Import custom routes files
 const studentsRoutes = require('./routes/students');
 const gradesRoutes = require('./routes/grades'); 
@@ -12,7 +10,7 @@ const path = require('path');
 require('dotenv').config(); // Load environment variables
 
 const app = express();
-const PORT = process.env.PORT || 3004;
+const PORT = process.env.PORT || 3004;  // Use the port from the .env file or default to 3004
 
 // Middleware
 app.use(express.json());
@@ -72,7 +70,6 @@ app.get('/', (req, res) => {
         </html>
     `);
 });
-
 
 // Start the Server
 app.listen(PORT, () => {
