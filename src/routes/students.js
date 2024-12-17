@@ -2,14 +2,25 @@ const express = require('express');
 const router = express.Router();
 const mysql = require('../db/mysql'); // MySQL connection
 
-// GET /students - Display all students in alphabetical order by sid
+// GET /students - Display all students with optional search and filter functionality
 router.get('/', async (req, res) => {
     try {
-        // Query to select all students ordered by student ID
-        const query = 'SELECT * FROM student ORDER BY sid ASC';
-        const [students] = await mysql.query(query);
+        const { search } = req.query; // Get the search query from URL parameters
+        let query = 'SELECT * FROM student';
+        const params = [];
 
-        // HTML response with Bootstrap styling
+        // Modify the query if a search term exists
+        if (search) {
+            query += ' WHERE name LIKE ? ORDER BY sid ASC';
+            params.push(`%${search}%`); // Add wildcard search for SQL LIKE
+        } else {
+            query += ' ORDER BY sid ASC';
+        }
+
+        // Execute the query
+        const [students] = await mysql.query(query, params);
+
+        // Generate HTML response with Bootstrap styling
         const html = `
             <!DOCTYPE html>
             <html lang="en">
@@ -17,19 +28,27 @@ router.get('/', async (req, res) => {
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Students</title>
-                <!-- Link to Bootstrap CSS -->
                 <link rel="stylesheet" href="/css/bootstrap.min.css">
             </head>
             <body>
-                <!-- Main Container -->
                 <div class="container my-5">
                     <!-- Page Title -->
                     <h1 class="text-center mb-4">Students</h1>
 
-                    <!-- Add Student and Back to Home Buttons -->
-                    <div class="d-flex justify-content-between mb-3">
-                        <a href="/students/add" class="btn btn-success">Add New Student</a>
-                        <a href="/" class="btn btn-primary">Back to Home</a>
+                    <!-- Top Action Section: Buttons and Search Bar -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <!-- Add Student and Back to Home Buttons -->
+                        <div>
+                            <a href="/students/add" class="btn btn-success me-2">Add New Student</a>
+                            <a href="/" class="btn btn-primary">Back to Home</a>
+                        </div>
+
+                        <!-- Search Form -->
+                        <form method="GET" action="/students" class="d-flex">
+                            <input type="text" name="search" class="form-control me-2" placeholder="Search by name..." value="${search || ''}">
+                            <button type="submit" class="btn btn-primary me-2">Search</button>
+                            <a href="/students" class="btn btn-secondary">Reset</a>
+                        </form>
                     </div>
 
                     <!-- Students Table -->
@@ -43,7 +62,6 @@ router.get('/', async (req, res) => {
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Populate Table Rows Dynamically -->
                             ${students.map(student => `
                                 <tr>
                                     <td>${student.sid}</td>
@@ -59,7 +77,7 @@ router.get('/', async (req, res) => {
                 </div>
 
                 <!-- Footer -->
-                <footer class="text-center mt-4">
+                <footer class="text-center mt-5">
                     <p>&copy; 2024 Eric Murray - G00423903</p>
                 </footer>
             </body>
@@ -69,12 +87,15 @@ router.get('/', async (req, res) => {
         // Send the generated HTML response
         res.send(html);
     } catch (err) {
-        // Log and handle any errors
         console.error('Error fetching students:', err);
-        res.status(500).send('Failed to fetch students');
+        res.status(500).send(`
+            <h1 class="text-danger text-center my-5">Failed to fetch students</h1>
+            <div class="text-center">
+                <a href="/" class="btn btn-primary">Back to Home</a>
+            </div>
+        `);
     }
 });
-
 
 // GET /students/edit/:sid - Show form to edit a specific student
 router.get('/edit/:sid', async (req, res) => {
