@@ -17,35 +17,71 @@ router.get('/', async (req, res) => {
         `;
         const [results] = await mysql.query(query);
 
-        // Generate HTML for the grades page
-        let html = `
-            <h1>Grades</h1>
-            <p><button onclick="window.location.href='/'">Back to Home</button></p>
-            <table border="1" cellspacing="0" cellpadding="5">
-                <tr>
-                    <th>Student</th>
-                    <th>Module</th>
-                    <th>Grade</th>
-                </tr>
+        // HTML response with Bootstrap styling
+        const html = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Grades</title>
+                <!-- Link to Bootstrap CSS -->
+                <link rel="stylesheet" href="/css/bootstrap.min.css">
+            </head>
+            <body>
+                <!-- Main Container -->
+                <div class="container my-5">
+                    <!-- Page Title -->
+                    <h1 class="text-center mb-4">Grades</h1>
+
+                    <!-- Back to Home Button -->
+                    <div class="mb-3 text-end">
+                        <a href="/" class="btn btn-primary">Back to Home</a>
+                    </div>
+
+                    <!-- Grades Table -->
+                    <table class="table table-striped table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Student</th>
+                                <th>Module</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamically Generate Rows -->
+                            ${results.map(row => `
+                                <tr>
+                                    <td>${row.student_name || ''}</td>
+                                    <td>${row.module_name || ''}</td>
+                                    <td>${row.grade !== null ? row.grade : ''}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Footer -->
+                <footer class="text-center mt-5">
+                    <p>&copy; 2024 Eric Murray - G00423903</p>
+                </footer>
+            </body>
+            </html>
         `;
 
-        // Dynamically generate rows
-        results.forEach(row => {
-            html += `
-                <tr>
-                    <td>${row.student_name || ''}</td>
-                    <td>${row.module_name || ''}</td>
-                    <td>${row.grade !== null ? row.grade : ''}</td>
-                </tr>
-            `;
-        });
-
-        html += `</table>`;
+        // Send the generated HTML response
         res.send(html);
     } catch (err) {
+        // Handle errors gracefully
         console.error('Error fetching grades:', err);
-        res.status(500).send('Failed to fetch grades');
+        res.status(500).send(`
+            <h1 class="text-danger text-center my-5">Failed to fetch grades</h1>
+            <div class="text-center">
+                <a href="/" class="btn btn-primary">Back to Home</a>
+            </div>
+        `);
     }
 });
+
 
 module.exports = router;

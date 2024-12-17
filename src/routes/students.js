@@ -9,45 +9,72 @@ router.get('/', async (req, res) => {
         const query = 'SELECT * FROM student ORDER BY sid ASC';
         const [students] = await mysql.query(query);
 
-        // HTML response
-        let html = `
-            <h1>Students</h1>
-            <p><button onclick="window.location.href='/students/add'">Add New Student</button>
-                <button onclick="window.location.href='/'">Back to Home</button></p>
-            <table border="1" cellspacing="0" cellpadding="5">
-                <tr>
-                    <th>Student ID</th>
-                    <th>Name</th>
-                    <th>Age</th>
-                    <th>Action</th>
-                </tr>
+        // HTML response with Bootstrap styling
+        const html = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Students</title>
+                <!-- Link to Bootstrap CSS -->
+                <link rel="stylesheet" href="/css/bootstrap.min.css">
+            </head>
+            <body>
+                <!-- Main Container -->
+                <div class="container my-5">
+                    <!-- Page Title -->
+                    <h1 class="text-center mb-4">Students</h1>
+
+                    <!-- Add Student and Back to Home Buttons -->
+                    <div class="d-flex justify-content-between mb-3">
+                        <a href="/students/add" class="btn btn-success">Add New Student</a>
+                        <a href="/" class="btn btn-primary">Back to Home</a>
+                    </div>
+
+                    <!-- Students Table -->
+                    <table class="table table-striped table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Age</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populate Table Rows Dynamically -->
+                            ${students.map(student => `
+                                <tr>
+                                    <td>${student.sid}</td>
+                                    <td>${student.name}</td>
+                                    <td>${student.age}</td>
+                                    <td>
+                                        <a href="/students/edit/${student.sid}" class="btn btn-warning btn-sm">Update</a>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Footer -->
+                <footer class="text-center mt-4">
+                    <p>&copy; 2024 Eric Murray - G00423903</p>
+                </footer>
+            </body>
+            </html>
         `;
 
-        // Generate table rows dynamically
-        students.forEach(student => {
-            html += `
-                <tr>
-                    <td>${student.sid}</td>
-                    <td>${student.name}</td>
-                    <td>${student.age}</td>
-                    <td>
-                        <a href="/students/edit/${student.sid}">Update</a>
-                    </td>
-                </tr>
-            `;
-        });
-
-        // Close the table
-        html += `
-            </table>
-        `;
-
+        // Send the generated HTML response
         res.send(html);
     } catch (err) {
+        // Log and handle any errors
         console.error('Error fetching students:', err);
         res.status(500).send('Failed to fetch students');
     }
 });
+
 
 // GET /students/edit/:sid - Show form to edit a specific student
 router.get('/edit/:sid', async (req, res) => {
@@ -58,36 +85,82 @@ router.get('/edit/:sid', async (req, res) => {
         const query = 'SELECT * FROM student WHERE sid = ?';
         const [rows] = await mysql.query(query, [sid]);
 
+        // Handle case where the student is not found
         if (rows.length === 0) {
-            return res.status(404).send('Student not found');
+            return res.status(404).send(`
+                <h1 class="text-danger text-center my-5">Student Not Found</h1>
+                <div class="text-center">
+                    <a href="/students" class="btn btn-primary">Back to Students</a>
+                </div>
+            `);
         }
 
         const student = rows[0];
 
-        // Display the form with the student's existing data
-        let html = `
-            <h1>Update Student</h1>
-            <form method="POST" action="/students/edit/${sid}">
-                <label>Student ID (Cannot be changed):</label><br>
-                <input type="text" name="sid" value="${student.sid}" disabled /><br><br>
+        // HTML response with Bootstrap styling
+        const html = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Update Student</title>
+                <!-- Link to Bootstrap CSS -->
+                <link rel="stylesheet" href="/css/bootstrap.min.css">
+            </head>
+            <body>
+                <div class="container my-5">
+                    <!-- Page Title -->
+                    <h1 class="text-center mb-4">Update Student</h1>
 
-                <label>Name:</label><br>
-                <input type="text" name="name" value="${student.name}" required minlength="2" /><br><br>
+                    <!-- Update Form -->
+                    <form method="POST" action="/students/edit/${sid}" class="p-4 border rounded bg-light">
+                        <!-- Student ID (Read-only) -->
+                        <div class="mb-3">
+                            <label for="sid" class="form-label fw-bold">Student ID (Cannot be changed):</label>
+                            <input type="text" id="sid" class="form-control" value="${student.sid}" disabled>
+                        </div>
 
-                <label>Age:</label><br>
-                <input type="number" name="age" value="${student.age}" required min="18" /><br><br>
+                        <!-- Name Input -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-bold">Name:</label>
+                            <input type="text" id="name" name="name" value="${student.name}" class="form-control" required minlength="2">
+                        </div>
 
-                <button type="submit">Update</button>
-                <button onclick="window.location.href='/students'">Cancel</button>
-            </form>
+                        <!-- Age Input -->
+                        <div class="mb-3">
+                            <label for="age" class="form-label fw-bold">Age:</label>
+                            <input type="number" id="age" name="age" value="${student.age}" class="form-control" required min="18">
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success">Update</button>
+                            <a href="/students" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Footer -->
+                <footer class="text-center mt-5">
+                    <p>&copy; 2024 Eric Murray - G00423903</p>
+                </footer>
+            </body>
+            </html>
         `;
 
         res.send(html);
     } catch (err) {
         console.error('Error fetching student for update:', err);
-        res.status(500).send('Failed to load student data');
+        res.status(500).send(`
+            <h1 class="text-danger text-center my-5">Failed to load student data</h1>
+            <div class="text-center">
+                <a href="/students" class="btn btn-primary">Back to Students</a>
+            </div>
+        `);
     }
 });
+
 
 
 // POST /students/edit/:sid - Process form submission and update student
@@ -122,26 +195,63 @@ router.post('/edit/:sid', async (req, res) => {
 
 // GET /students/add - Show form to add a new student
 router.get('/add', (req, res) => {
-    // Display the form with empty inputs
-    let html = `
-        <h1>Add New Student</h1>
-        <form method="POST" action="/students/add">
-            <label>Student ID (Starts with G00, 4+ characters):</label><br>
-            <input type="text" name="sid" placeholder="G001" required minlength="4" /><br><br>
+    // HTML response with Bootstrap styling
+    const html = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Add New Student</title>
+            <!-- Link to Bootstrap CSS -->
+            <link rel="stylesheet" href="/css/bootstrap.min.css">
+        </head>
+        <body>
+            <!-- Main Container -->
+            <div class="container my-5">
+                <!-- Page Title -->
+                <h1 class="text-center mb-4">Add New Student</h1>
 
-            <label>Name (Minimum 2 characters):</label><br>
-            <input type="text" name="name" placeholder="John Doe" required minlength="2" /><br><br>
+                <!-- Add Student Form -->
+                <form method="POST" action="/students/add" class="p-4 border rounded bg-light">
+                    <!-- Student ID Input -->
+                    <div class="mb-3">
+                        <label for="sid" class="form-label fw-bold">Student ID (Starts with G00, 4+ characters):</label>
+                        <input type="text" id="sid" name="sid" placeholder="G001" class="form-control" required minlength="4">
+                    </div>
 
-            <label>Age (18 or older):</label><br>
-            <input type="number" name="age" placeholder="18" required min="18" /><br><br>
+                    <!-- Name Input -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label fw-bold">Name (Minimum 2 characters):</label>
+                        <input type="text" id="name" name="name" placeholder="John Doe" class="form-control" required minlength="2">
+                    </div>
 
-            <button type="submit">Add Student</button>
-            <button onclick="window.location.href='/students'">Cancel</button>
-        </form>
+                    <!-- Age Input -->
+                    <div class="mb-3">
+                        <label for="age" class="form-label fw-bold">Age (18 or older):</label>
+                        <input type="number" id="age" name="age" placeholder="18" class="form-control" required min="18">
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-success">Add Student</button>
+                        <a href="/students" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <footer class="text-center mt-5">
+                <p>&copy; 2024 Eric Murray - G00423903</p>
+            </footer>
+        </body>
+        </html>
     `;
 
+    // Send the generated HTML response
     res.send(html);
 });
+
 
 // POST /students/add - Add a new student to the database
 router.post('/add', async (req, res) => {
