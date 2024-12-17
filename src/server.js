@@ -5,6 +5,7 @@ const connectMongo = require('./db/mongo');
 const studentsRoutes = require('./routes/students');
 const gradesRoutes = require('./routes/grades'); 
 const lecturersRoutes = require('./routes/lecturers');
+const dashboardRoutes = require('./routes/dashboard');
 // Import path module to serve static files
 const path = require('path');
 
@@ -25,6 +26,7 @@ app.use('/js', express.static(path.join(__dirname, '../node_modules/bootstrap/di
 app.use('/students', studentsRoutes);
 app.use('/lecturers', lecturersRoutes);
 app.use('/grades', gradesRoutes);
+app.use('/dashboard', dashboardRoutes);
 
 
 // Home Page Route
@@ -55,6 +57,9 @@ app.get('/', (req, res) => {
                     </a>
                     <a href="/lecturers" class="list-group-item list-group-item-action">
                         Lecturers Page
+                    </a>
+                    <a href="/dashboard" class="list-group-item list-group-item-action">
+                        Dashboard
                     </a>
                 </div>
             </div>
